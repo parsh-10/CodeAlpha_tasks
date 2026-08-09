@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Contact Sheet — Image Gallery</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* ============================================
+     DESIGN TOKENS — change these to re-theme the whole page
+     ============================================ */
+  :root{
+    --charcoal: #1a1a18;
+    --charcoal-2: #232320;
+    --paper: #f4efe4;
+    --amber: #e2a33d;
+    --teal: #4a6670;
+    --grey: #8f8b82;
+    --font-display: 'Oswald', sans-serif;
+    --font-body: 'Inter', sans-serif;
+  }
+
+  *{ box-sizing: border-box; margin:0; padding:0; }
+
+  body{
+    background: var(--charcoal);
+    color: var(--paper);
+    font-family: var(--font-body);
+    min-height: 100vh;
+    padding: 48px 24px 80px;
+  }
+
+  /* ============================================
+     HEADER
+     ============================================ */
+  header{
+    max-width: 1100px;
+    margin: 0 auto 40px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    gap: 16px;
+    border-bottom: 1px solid rgba(244,239,228,0.15);
+    padding-bottom: 24px;
+  }
+
+  .eyebrow{
+    font-family: var(--font-display);
+    letter-spacing: 0.35em;
+    font-size: 12px;
+    color: var(--amber);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  h1{
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: clamp(32px, 5vw, 52px);
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+  }
+
+  .roll-info{
+    font-family: var(--font-display);
+    font-size: 13px;
+    letter-spacing: 0.1em;
+    color: var(--grey);
+    text-align: right;
+  }
+
+  /* ============================================
+     CATEGORY FILTER — styled like film canister tabs
+     ============================================ */
+  .filters{
+    max-width: 1100px;
+    margin: 0 auto 32px;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .filter-btn{
+    font-family: var(--font-display);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-size: 13px;
+    background: transparent;
+    color: var(--grey);
+    border: 1px solid rgba(244,239,228,0.2);
+    padding: 8px 18px;
+    border-radius: 2px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+  }
+
+  .filter-btn:hover{
+    color: var(--paper);
+    border-color: var(--amber);
+  }
+
+  .filter-btn.active{
+    background: var(--amber);
+    color: var(--charcoal);
+    border-color: var(--amber);
+  }
+
+  /* ============================================
+     TOOLBAR — add-photo control, sits opposite the filters
+     ============================================ */
+  .toolbar{
+    max-width: 1100px;
+    margin: -8px auto 24px;
+    display: flex;
+    justify-content: flex-end;
+  }
+
+  .add-btn{
+    font-family: var(--font-display);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-size: 13px;
+    background: var(--teal);
+    color: var(--paper);
+    border: 1px solid var(--teal);
+    padding: 8px 18px;
+    border-radius: 2px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+  }
+
+  .add-btn:hover{
+    background: var(--amber);
+    border-color: var(--amber);
+    color: var(--charcoal);
+  }
+
+  /* ============================================
+     GALLERY GRID — "contact sheet" frames
+     ============================================ */
+  .gallery{
+    max-width: 1100px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 28px;
+  }
+
+  .frame{
+    background: var(--charcoal-2);
+    border-radius: 3px;
+    overflow: hidden;
+    cursor: pointer;
+    position: relative;
+    opacity: 0;
+    transform: translateY(16px);
+    animation: frameIn 0.5s ease forwards;
+  }
+
+  @keyframes frameIn{
+    to{ opacity: 1; transform: translateY(0); }
+  }
+
+  /* sprocket holes top and bottom, like real film */
+  .sprockets{
+    display: flex;
+    justify-content: space-evenly;
+    padding: 6px 8px;
+    background: var(--charcoal);
+  }
+
+  .sprockets span{
+    width: 8px;
+    height: 6px;
+    background: var(--charcoal-2);
+    border-radius: 1px;
+  }
+
+  .frame-img-wrap{
+    position: relative;
+    overflow: hidden;
+    aspect-ratio: 4/3;
+  }
+
+  .frame-img-wrap img{
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    filter: grayscale(20%) contrast(1.02);
+    transition: transform 0.5s ease, filter 0.5s ease;
+  }
+
+  .frame:hover .frame-img-wrap img{
+    transform: scale(1.08);
+    filter: grayscale(0%) contrast(1.05);
+  }
+
+  .frame-caption{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 12px;
+    font-family: var(--font-display);
+    font-size: 12px;
+    letter-spacing: 0.05em;
+    color: var(--grey);
+  }
+
+  .frame-caption .num{ color: var(--amber); }
+
+  .frame-img-wrap::after{
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(0,0,0,0) 60%, rgba(0,0,0,0.55) 100%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  .frame:hover .frame-img-wrap::after{ opacity: 1; }
+
+  /* small circular delete button, top-right of each frame, hidden until hover */
+  .delete-btn{
+    position: absolute;
+    top: 14px;
+    right: 10px;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: rgba(20,20,18,0.75);
+    border: 1px solid rgba(244,239,228,0.3);
+    color: var(--paper);
+    font-size: 15px;
+    line-height: 1;
+    cursor: pointer;
+    opacity: 0;
+    transform: scale(0.85);
+    transition: all 0.2s ease;
+    z-index: 2;
+  }
+
+  .frame:hover .delete-btn,
+  .delete-btn:focus-visible{
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  .delete-btn:hover{
+    background: #b0453a;
+    border-color: #b0453a;
+  }
+
+  .lightbox-delete{
+    position: absolute;
+    bottom: 28px;
+    right: 32px;
+    background: transparent;
+    border: 1px solid rgba(244,239,228,0.3);
+    color: var(--paper);
+    font-family: var(--font-display);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-size: 12px;
+    padding: 8px 16px;
+    border-radius: 2px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .lightbox-delete:hover{
+    background: #b0453a;
+    border-color: #b0453a;
+  }
+
+  /* ============================================
+     LIGHTBOX
+     ============================================ */
+  .lightbox{
+    position: fixed;
+    inset: 0;
+    background: rgba(10,10,9,0.96);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+  }
+
+  .lightbox.open{
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .lightbox-content{
+    max-width: 88vw;
+    max-height: 82vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .lightbox-content img{
+    max-width: 88vw;
+    max-height: 70vh;
+    object-fit: contain;
+    border-radius: 2px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  }
+
+  .lightbox-meta{
+    font-family: var(--font-display);
+    letter-spacing: 0.1em;
+    font-size: 14px;
+    color: var(--grey);
+    text-transform: uppercase;
+  }
+
+  .lightbox-meta .num{ color: var(--amber); }
+
+  .lightbox-close{
+    position: absolute;
+    top: 28px;
+    right: 32px;
+    background: transparent;
+    border: none;
+    color: var(--paper);
+    font-size: 32px;
+    line-height: 1;
+    cursor: pointer;
+    font-family: var(--font-display);
+  }
+
+  .lightbox-close:hover{ color: var(--amber); }
+
+  .lightbox-nav{
+    background: transparent;
+    border: 1px solid rgba(244,239,228,0.25);
+    color: var(--paper);
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    font-size: 20px;
+    cursor: pointer;
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    transition: all 0.2s ease;
+  }
+
+  .lightbox-nav:hover{
+    border-color: var(--amber);
+    color: var(--amber);
+  }
+
+  .lightbox-prev{ left: 3vw; }
+  .lightbox-next{ right: 3vw; }
+
+  /* focus visibility for keyboard users */
+  button:focus-visible, .frame:focus-visible{
+    outline: 2px solid var(--amber);
+    outline-offset: 2px;
+  }
+
+  /* ============================================
+     RESPONSIVE
+     ============================================ */
+  @media (max-width: 640px){
+    body{ padding: 32px 16px 64px; }
+    .roll-info{ text-align: left; }
+    .lightbox-nav{ width: 36px; height: 36px; font-size: 16px; }
+    .lightbox-prev{ left: 8px; }
+    .lightbox-next{ right: 8px; }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .frame, .frame-img-wrap img, .lightbox{ transition: none; animation: none; opacity: 1; transform: none; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <div class="eyebrow">Roll No. 01 — Developed</div>
+    <h1>Contact Sheet</h1>
+  </div>
+  <div class="roll-info" id="rollInfo">24 exposures</div>
+</header>
+
+<nav class="filters" id="filters">
+  <!-- filter buttons are injected by JS from the categories in IMAGES -->
+</nav>
+
+<div class="toolbar">
+  <button class="add-btn" id="addBtn">+ Add Photo</button>
+  <!-- hidden native file picker, triggered by the button above -->
+  <input type="file" id="fileInput" accept="image/*" style="display:none">
+</div>
+
+<main class="gallery" id="gallery">
+  <!-- image frames are injected by JS -->
+</main>
+
+<!-- LIGHTBOX MARKUP (one instance, reused for every image) -->
+<div class="lightbox" id="lightbox">
+  <button class="lightbox-close" id="lightboxClose" aria-label="Close">&times;</button>
+  <button class="lightbox-nav lightbox-prev" id="lightboxPrev" aria-label="Previous image">&#10094;</button>
+  <div class="lightbox-content">
+    <img id="lightboxImg" src="" alt="">
+    <div class="lightbox-meta">
+      Frame <span class="num" id="lightboxNum"></span> — <span id="lightboxCategory"></span>
+    </div>
+  </div>
+  <button class="lightbox-nav lightbox-next" id="lightboxNext" aria-label="Next image">&#10095;</button>
+  <button class="lightbox-delete" id="lightboxDelete">Delete Photo</button>
+</div>
+
+<script>
+/* ============================================================
+   1. DATA — the gallery's contents.
+   Each object is one photo: its source URL, category and title.
+   Swap these for your own image URLs/paths whenever you like.
+   ============================================================ */
+let IMAGES = [
+  { id: 1,  src: "https://picsum.photos/seed/nature1/800/600", category: "Nature", title: "Morning Ridge" },
+  { id: 2,  src: "https://picsum.photos/seed/nature2/800/600", category: "Nature", title: "River Bend" },
+  { id: 3,  src: "https://picsum.photos/seed/nature3/800/600", category: "Nature", title: "Fern Light" },
+  { id: 4,  src: "https://picsum.photos/seed/nature4/800/600", category: "Nature", title: "Windrow" },
+  { id: 5,  src: "https://picsum.photos/seed/urban1/800/600", category: "Urban", title: "Overpass" },
+  { id: 6,  src: "https://picsum.photos/seed/urban2/800/600", category: "Urban", title: "Grid Street" },
+  { id: 7,  src: "https://picsum.photos/seed/urban3/800/600", category: "Urban", title: "Night Market" },
+  { id: 8,  src: "https://picsum.photos/seed/urban4/800/600", category: "Urban", title: "Concrete Line" },
+  { id: 9,  src: "https://picsum.photos/seed/portrait1/800/600", category: "Portrait", title: "Study No.1" },
+  { id: 10, src: "https://picsum.photos/seed/portrait2/800/600", category: "Portrait", title: "Study No.2" },
+  { id: 11, src: "https://picsum.photos/seed/portrait3/800/600", category: "Portrait", title: "Study No.3" },
+  { id: 12, src: "https://picsum.photos/seed/abstract1/800/600", category: "Abstract", title: "Texture I" },
+  { id: 13, src: "https://picsum.photos/seed/abstract2/800/600", category: "Abstract", title: "Texture II" },
+  { id: 14, src: "https://picsum.photos/seed/abstract3/800/600", category: "Abstract", title: "Texture III" },
+];
+
+// Counter for assigning a unique id to every newly uploaded photo
+let nextId = IMAGES.length + 1;
+
+/* ============================================================
+   2. STATE
+   currentFilter -> which category tab is active ("All" by default)
+   currentIndex  -> index (within the *filtered* list) open in the lightbox
+   ============================================================ */
+let currentFilter = "All";
+let currentIndex = 0;
+
+/* Cache references to DOM elements we touch repeatedly */
+const galleryEl   = document.getElementById("gallery");
+const filtersEl   = document.getElementById("filters");
+const rollInfoEl  = document.getElementById("rollInfo");
+const lightbox    = document.getElementById("lightbox");
+const lightboxImg = document.getElementById("lightboxImg");
+const lightboxNum = document.getElementById("lightboxNum");
+const lightboxCat = document.getElementById("lightboxCategory");
+const addBtn         = document.getElementById("addBtn");
+const fileInput      = document.getElementById("fileInput");
+const lightboxDelete = document.getElementById("lightboxDelete");
+
+/* ============================================================
+   3. HELPERS
+   ============================================================ */
+
+// Returns only the images that match the current filter
+function getFilteredImages(){
+  if (currentFilter === "All") return IMAGES;
+  return IMAGES.filter(img => img.category === currentFilter);
+}
+
+// Builds the row of category buttons from the unique categories in IMAGES
+function renderFilters(){
+  const categories = ["All", ...new Set(IMAGES.map(img => img.category))];
+
+  filtersEl.innerHTML = categories.map(cat => `
+    <button class="filter-btn ${cat === currentFilter ? "active" : ""}" data-category="${cat}">
+      ${cat}
+    </button>
+  `).join("");
+
+  // Attach a click handler to every button
+  filtersEl.querySelectorAll(".filter-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      currentFilter = btn.dataset.category;
+      renderFilters();   // re-render so the "active" class moves
+      renderGallery();   // re-render the grid with the new filter
+    });
+  });
+}
+
+// Builds the grid of image "frames" for whatever the current filter is
+function renderGallery(){
+  const images = getFilteredImages();
+  rollInfoEl.textContent = `${images.length} exposure${images.length !== 1 ? "s" : ""}`;
+
+  if (images.length === 0) {
+    galleryEl.innerHTML = `<p style="grid-column:1/-1; color:var(--grey); font-family:var(--font-display); letter-spacing:0.05em;">No photos here yet. Click "+ Add Photo" to start this roll.</p>`;
+    return;
+  }
+
+  galleryEl.innerHTML = images.map((img, i) => `
+    <figure class="frame" tabindex="0" data-id="${img.id}" style="animation-delay:${i * 0.04}s">
+      <button class="delete-btn" data-id="${img.id}" aria-label="Delete ${img.title}">&times;</button>
+      <div class="sprockets">${"<span></span>".repeat(9)}</div>
+      <div class="frame-img-wrap">
+        <img src="${img.src}" alt="${img.title}" loading="lazy">
+      </div>
+      <figcaption class="frame-caption">
+        <span>${img.title}</span>
+        <span class="num">#${String(i + 1).padStart(2, "0")}</span>
+      </figcaption>
+    </figure>
+  `).join("");
+
+  // Clicking (or pressing Enter on) a frame opens the lightbox on that photo.
+  // We look the photo up by id, then find its position in the *filtered*
+  // list — that position is what the lightbox uses for next/prev.
+  galleryEl.querySelectorAll(".frame").forEach(frame => {
+    const id = parseInt(frame.dataset.id, 10);
+    const open = () => {
+      const idx = getFilteredImages().findIndex(img => img.id === id);
+      openLightbox(idx);
+    };
+    frame.addEventListener("click", open);
+    frame.addEventListener("keydown", e => { if (e.key === "Enter") open(); });
+  });
+
+  // Each frame's delete (×) button removes just that photo.
+  // stopPropagation keeps the click from also bubbling up and opening the lightbox.
+  galleryEl.querySelectorAll(".delete-btn").forEach(btn => {
+    btn.addEventListener("click", e => {
+      e.stopPropagation();
+      const id = parseInt(btn.dataset.id, 10);
+      deleteImage(id);
+    });
+  });
+}
+
+/* ============================================================
+   4. LIGHTBOX LOGIC
+   ============================================================ */
+
+function openLightbox(index){
+  currentIndex = index;
+  updateLightboxImage();
+  lightbox.classList.add("open");
+  document.body.style.overflow = "hidden"; // stop background scroll while open
+}
+
+function closeLightbox(){
+  lightbox.classList.remove("open");
+  document.body.style.overflow = "";
+}
+
+function updateLightboxImage(){
+  const images = getFilteredImages();
+  const img = images[currentIndex];
+  lightboxImg.src = img.src;
+  lightboxImg.alt = img.title;
+  lightboxImg.dataset.id = img.id;
+  lightboxNum.textContent = String(currentIndex + 1).padStart(2, "0") + " / " + String(images.length).padStart(2, "0");
+  lightboxCat.textContent = img.category;
+}
+
+function showNext(){
+  const images = getFilteredImages();
+  if (images.length === 0) return closeLightbox();
+  currentIndex = (currentIndex + 1) % images.length; // wraps around to the start
+  updateLightboxImage();
+}
+
+function showPrev(){
+  const images = getFilteredImages();
+  if (images.length === 0) return closeLightbox();
+  currentIndex = (currentIndex - 1 + images.length) % images.length; // wraps to the end
+  updateLightboxImage();
+}
+
+/* ============================================================
+   4b. ADD / DELETE PHOTOS
+   ============================================================ */
+
+// Triggered when the user picks a file from their computer
+function addImage(file){
+  if (!file || !file.type.startsWith("image/")) return;
+
+  // Ask for a couple of details. prompt() is the simplest way to collect
+  // text input without building a custom modal — good enough for this project.
+  const title = prompt("Title for this photo?", file.name.replace(/\.[^/.]+$/, "")) || "Untitled";
+  const category = prompt("Category? (e.g. Nature, Urban, Portrait — leave blank for 'Uncategorized')", "") || "Uncategorized";
+
+  // FileReader converts the chosen file into a base64 "data URL" string,
+  // which an <img> tag can display directly — no server/upload needed.
+  const reader = new FileReader();
+  reader.onload = e => {
+    IMAGES.push({ id: nextId++, src: e.target.result, category, title });
+    renderFilters();
+    renderGallery();
+  };
+  reader.readAsDataURL(file);
+}
+
+// Removes one photo (by id) from IMAGES, wherever it's referenced
+function deleteImage(id){
+  const img = IMAGES.find(i => i.id === id);
+  if (!img) return;
+  if (!confirm(`Delete "${img.title}"? This can't be undone.`)) return;
+
+  IMAGES = IMAGES.filter(i => i.id !== id);
+
+  // If the deleted photo was open in the lightbox, close it
+  if (lightbox.classList.contains("open") && lightboxImg.dataset.id === String(id)) {
+    closeLightbox();
+  }
+
+  renderFilters();
+  renderGallery();
+}
+
+// "+ Add Photo" button opens the hidden native file picker
+addBtn.addEventListener("click", () => fileInput.click());
+
+// Once a file is chosen, hand it to addImage() and reset the input
+// (resetting lets the user pick the same file again later if needed)
+fileInput.addEventListener("change", () => {
+  addImage(fileInput.files[0]);
+  fileInput.value = "";
+});
+
+// Delete button inside the lightbox deletes whatever photo is currently shown
+lightboxDelete.addEventListener("click", () => {
+  const id = parseInt(lightboxImg.dataset.id, 10);
+  deleteImage(id);
+});
+
+/* Button + overlay click handlers */
+document.getElementById("lightboxClose").addEventListener("click", closeLightbox);
+document.getElementById("lightboxNext").addEventListener("click", showNext);
+document.getElementById("lightboxPrev").addEventListener("click", showPrev);
+
+// Clicking the dark backdrop (but not the image itself) also closes it
+lightbox.addEventListener("click", e => {
+  if (e.target === lightbox) closeLightbox();
+});
+
+// Keyboard support: Esc closes, arrow keys navigate
+document.addEventListener("keydown", e => {
+  if (!lightbox.classList.contains("open")) return;
+  if (e.key === "Escape")     closeLightbox();
+  if (e.key === "ArrowRight") showNext();
+  if (e.key === "ArrowLeft")  showPrev();
+});
+
+/* ============================================================
+   5. INIT — run once on page load
+   ============================================================ */
+renderFilters();
+renderGallery();
+</script>
+
+</body>
+</html>
